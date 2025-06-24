@@ -2,23 +2,35 @@ name: todoList 自动部署
 on:
   push:
     branches:
-      - master
+      - master # 确保这是你的主分支名，现在 GitHub 默认为 main
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: pnpm/action-setup@v2
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
         with:
           version: 8.6.2
-      - uses: actions/setup-node@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
         with:
-          node-version: 16.X
-      - run: npm install
-      - run: npm run build
-      - name: action-Deploy
+          node-version: 16.x
+          cache: 'pnpm' # 使用 pnpm 的缓存
+
+      - name: Install dependencies
+        run: pnpm install # <-- 优化点：使用 pnpm 安装
+
+      - name: Build project
+        run: pnpm run build # 建议也使用 pnpm 运行脚本
+
+      - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.DEPLOY_SECRET }}
-          BRANCH: gh-pages
           publish_dir: ./dist
+          # 如果你想部署到默认的 gh-pages 分支，可以省略 BRANCH 参数
+          BRANCH: gh-pages
